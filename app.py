@@ -1,5 +1,5 @@
+import customtkinter as ctk
 import tkinter as tk
-from tkinter import ttk
 
 # Dictionary to map note names to their semitone values
 notes_to_semitones = {
@@ -27,63 +27,75 @@ def calculate_new_tuning(current_tuning, semitone_change):
         new_tuning.append(semitones_to_notes[new_value])
     return new_tuning
 
-def update_tuning_label():
-    semitone_change = semitone_slider.get()
-    new_tuning = calculate_new_tuning(current_tuning_var.get().split(), semitone_change)
-    tuning_label.config(text="New Tuning: " + " ".join(new_tuning))
+class GuitarTuningApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Guitar Tuning Calculator")
 
-def update_semitone_difference():
-    current_tuning = current_tuning_var.get().split()
-    desired_tuning = desired_tuning_var.get().split()
-    semitone_differences = calculate_semitone_difference(current_tuning, desired_tuning)
-    semitone_diff_label.config(text="Semitone Differences: " + " ".join(map(str, semitone_differences)))
+        # Set customtkinter appearance mode and color theme
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("dark-blue")
 
-# Create the main application window
-root = tk.Tk()
-root.title("Guitar Tuning Calculator")
+        # Create main frame with customtkinter style
+        self.frame = ctk.CTkFrame(master=root)
+        self.frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-# Input for number of strings
-number_of_strings_label = tk.Label(root, text="Number of Strings:")
-number_of_strings_label.pack()
-number_of_strings = tk.IntVar()
-number_of_strings.set(6)
-number_of_strings_entry = tk.Entry(root, textvariable=number_of_strings)
-number_of_strings_entry.pack()
+        # Number of strings input
+        self.label_strings = ctk.CTkLabel(master=self.frame, text="Number of Strings:", font=("Helvetica", 14, "bold"))
+        self.label_strings.grid(row=0, column=0, pady=5, padx=10, sticky="w")
+        self.entry_strings = ctk.CTkEntry(master=self.frame, placeholder_text="Enter number of strings", font=("Helvetica", 12))
+        self.entry_strings.grid(row=0, column=1, pady=5, padx=10, sticky="w")
 
-# Input for current tuning
-current_tuning_label = tk.Label(root, text="Current Tuning (space-separated):")
-current_tuning_label.pack()
-current_tuning_var = tk.StringVar()
-current_tuning_var.set('C# G# C# F# A# D#')
-current_tuning_entry = tk.Entry(root, textvariable=current_tuning_var)
-current_tuning_entry.pack()
+        # Current tuning input
+        self.label_current_tuning = ctk.CTkLabel(master=self.frame, text="Current Tuning (space-separated):", font=("Helvetica", 14, "bold"))
+        self.label_current_tuning.grid(row=1, column=0, pady=5, padx=10, sticky="w")
+        self.entry_current_tuning = ctk.CTkEntry(master=self.frame, placeholder_text="e.g. C# G# C# F# A# D#", font=("Helvetica", 12))
+        self.entry_current_tuning.grid(row=1, column=1, pady=5, padx=10, sticky="w")
 
-# Input for desired tuning
-desired_tuning_label = tk.Label(root, text="Desired Tuning (space-separated):")
-desired_tuning_label.pack()
-desired_tuning_var = tk.StringVar()
-desired_tuning_var.set('D A D G B E')
-desired_tuning_entry = tk.Entry(root, textvariable=desired_tuning_var)
-desired_tuning_entry.pack()
+        # Desired tuning input
+        self.label_desired_tuning = ctk.CTkLabel(master=self.frame, text="Desired Tuning (space-separated):", font=("Helvetica", 14, "bold"))
+        self.label_desired_tuning.grid(row=2, column=0, pady=5, padx=10, sticky="w")
+        self.entry_desired_tuning = ctk.CTkEntry(master=self.frame, placeholder_text="e.g. D A D G B E", font=("Helvetica", 12))
+        self.entry_desired_tuning.grid(row=2, column=1, pady=5, padx=10, sticky="w")
 
-# Button to calculate semitone differences
-calculate_button = tk.Button(root, text="Calculate Semitone Differences", command=update_semitone_difference)
-calculate_button.pack()
+        # Calculate button for semitone differences
+        self.button_calculate = ctk.CTkButton(master=self.frame, text="Calculate Semitone Differences", command=self.update_semitone_difference)
+        self.button_calculate.grid(row=3, column=1, pady=20)
 
-# Label to display semitone differences
-semitone_diff_label = tk.Label(root, text="Semitone Differences: ")
-semitone_diff_label.pack()
+        # Label to display semitone differences
+        self.semitone_diff_label = ctk.CTkLabel(master=self.frame, text="Semitone Differences: ", font=("Helvetica", 12))
+        self.semitone_diff_label.grid(row=4, column=0, columnspan=2, pady=10)
 
-# Create and place the slider for semitone change
-semitone_slider = tk.Scale(root, from_=-12, to=12, orient=tk.HORIZONTAL, label="Semitone Change")
-semitone_slider.pack()
+        # Slider for semitone change
+        self.semitone_slider = ctk.CTkSlider(master=self.frame, from_=-12, to=12, number_of_steps=24, command=self.update_tuning_label)
+        self.semitone_slider.grid(row=5, column=0, columnspan=2, pady=20)
+        self.slider_label = ctk.CTkLabel(master=self.frame, text="Semitone Change: 0", font=("Helvetica", 12))
+        self.slider_label.grid(row=6, column=0, columnspan=2)
 
-# Create and place the label to display the new tuning
-tuning_label = tk.Label(root, text="New Tuning: ")
-tuning_label.pack()
+        # Label to display the new tuning
+        self.tuning_label = ctk.CTkLabel(master=self.frame, text="New Tuning: ", font=("Helvetica", 12))
+        self.tuning_label.grid(row=7, column=0, columnspan=2, pady=10)
 
-# Update the tuning label whenever the slider value changes
-semitone_slider.bind("<Motion>", lambda event: update_tuning_label())
+    def update_semitone_difference(self):
+        try:
+            current_tuning = self.entry_current_tuning.get().split()
+            desired_tuning = self.entry_desired_tuning.get().split()
+            semitone_differences = calculate_semitone_difference(current_tuning, desired_tuning)
+            self.semitone_diff_label.configure(text="Semitone Differences: " + " ".join(map(str, semitone_differences)))
+        except Exception as e:
+            print(f"Error in calculating semitone difference: {e}")
 
-# Start the Tkinter event loop
-root.mainloop()
+    def update_tuning_label(self, value):
+        try:
+            semitone_change = int(float(value))
+            self.slider_label.configure(text=f"Semitone Change: {semitone_change}")
+            current_tuning = self.entry_current_tuning.get().split()
+            new_tuning = calculate_new_tuning(current_tuning, semitone_change)
+            self.tuning_label.configure(text="New Tuning: " + " ".join(new_tuning))
+        except Exception as e:
+            print(f"Error in updating tuning label: {e}")
+
+if __name__ == "__main__":
+    root = ctk.CTk()
+    app = GuitarTuningApp(root)
+    root.mainloop()
